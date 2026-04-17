@@ -14,5 +14,6 @@ data class PetUiState(
     val health: Int = 0,
     val hungerState: HungerState? = null,
     val happinessState: HappinessState? = null,
+    val healthRecoveryMessage: String? = null,
     val errorMessage: String? = null,
 )

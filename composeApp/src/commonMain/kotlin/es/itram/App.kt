@@ -123,6 +123,13 @@ fun App() {
                     text = "Salud: ${uiState.health}/100",
                     style = MaterialTheme.typography.titleMedium,
                 )
+                if (uiState.healthRecoveryMessage != null) {
+                    Text(
+                        text = uiState.healthRecoveryMessage,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
 
                 val hungerState = uiState.hungerState
                 if (hungerState != null) {
