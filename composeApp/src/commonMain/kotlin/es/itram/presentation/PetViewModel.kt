@@ -1,0 +1,60 @@
+package es.itram.presentation
+
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import es.itram.domain.model.FoodType
+import es.itram.domain.model.PetSpecies
+import es.itram.domain.usecase.CreatePetUseCase
+import es.itram.domain.usecase.FeedPetUseCase
+import es.itram.domain.usecase.GetPetStatusUseCase
+import es.itram.domain.usecase.TickStatsUseCase
+
+class PetViewModel(
+    private val createPetUseCase: CreatePetUseCase,
+    private val getPetStatusUseCase: GetPetStatusUseCase,
+    private val tickStatsUseCase: TickStatsUseCase,
+    private val feedPetUseCase: FeedPetUseCase,
+) {
+    var uiState by mutableStateOf(PetUiState())
+        private set
+
+    init {
+        refreshUiState(errorMessage = null)
+    }
+
+    fun createPet(name: String, species: PetSpecies) {
+        val cleanName = name.trim()
+        if (cleanName.isEmpty()) {
+            refreshUiState(errorMessage = "Escribe un nombre para tu mascota")
+            return
+        }
+        createPetUseCase(cleanName, species)
+        refreshUiState(errorMessage = null)
+    }
+
+    fun tick() {
+        tickStatsUseCase()
+        refreshUiState(errorMessage = null)
+    }
+
+    fun feed(foodType: FoodType = FoodType.MEAL) {
+        feedPetUseCase(foodType)
+        refreshUiState(errorMessage = null)
+    }
+
+    private fun refreshUiState(errorMessage: String?) {
+        val pet = getPetStatusUseCase()
+        uiState = if (pet == null) {
+            PetUiState(errorMessage = errorMessage)
+        } else {
+            PetUiState(
+                hasPet = true,
+                petName = pet.name,
+                speciesName = pet.species.displayName,
+                hunger = pet.stats.hunger,
+                errorMessage = errorMessage,
+            )
+        }
+    }
+}
