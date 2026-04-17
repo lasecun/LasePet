@@ -7,6 +7,7 @@ import es.itram.domain.model.FoodType
 import es.itram.domain.model.PetSpecies
 import es.itram.domain.usecase.CreatePetUseCase
 import es.itram.domain.usecase.FeedPetUseCase
+import es.itram.domain.usecase.GetHungerStateUseCase
 import es.itram.domain.usecase.GetPetStatusUseCase
 import es.itram.domain.usecase.TickStatsUseCase
 
@@ -15,6 +16,7 @@ class PetViewModel(
     private val getPetStatusUseCase: GetPetStatusUseCase,
     private val tickStatsUseCase: TickStatsUseCase,
     private val feedPetUseCase: FeedPetUseCase,
+    private val getHungerStateUseCase: GetHungerStateUseCase,
 ) {
     var uiState by mutableStateOf(PetUiState())
         private set
@@ -53,6 +55,9 @@ class PetViewModel(
                 petName = pet.name,
                 speciesName = pet.species.displayName,
                 hunger = pet.stats.hunger,
+                happiness = pet.stats.happiness,
+                health = pet.stats.health,
+                hungerState = getHungerStateUseCase(pet.stats.hunger),
                 errorMessage = errorMessage,
             )
         }

@@ -25,6 +25,16 @@ data class Stats(
         val next = (hunger + delta).coerceIn(0, 100)
         return copy(hunger = next)
     }
+
+    fun withHealthDelta(delta: Int): Stats {
+        val next = (health + delta).coerceIn(0, 100)
+        return copy(health = next)
+    }
+
+    fun withHappinessDelta(delta: Int): Stats {
+        val next = (happiness + delta).coerceIn(0, 100)
+        return copy(happiness = next)
+    }
 }
 
 data class Pet(
@@ -33,5 +43,6 @@ data class Pet(
     val species: PetSpecies,
     val stats: Stats,
     val createdAtEpochMillis: Long,
+    val criticalHungerStreak: Int = 0,
 )
 
