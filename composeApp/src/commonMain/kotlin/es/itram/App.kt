@@ -187,6 +187,10 @@ fun App() {
                     }
                 }
 
+                Button(onClick = { viewModel.sleep() }) {
+                    Text("Dormir")
+                }
+
                 Button(onClick = { viewModel.tick() }) {
                     Text("Avanzar tiempo (+5 hambre)")
                 }

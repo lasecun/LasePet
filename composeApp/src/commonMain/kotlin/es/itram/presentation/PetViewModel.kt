@@ -12,6 +12,7 @@ import es.itram.domain.usecase.GetHappinessStateUseCase
 import es.itram.domain.usecase.GetHungerStateUseCase
 import es.itram.domain.usecase.GetPetStatusUseCase
 import es.itram.domain.usecase.PlayWithPetUseCase
+import es.itram.domain.usecase.SleepPetUseCase
 import es.itram.domain.usecase.TickStatsUseCase
 
 class PetViewModel(
@@ -21,6 +22,7 @@ class PetViewModel(
     private val feedPetUseCase: FeedPetUseCase,
     private val playWithPetUseCase: PlayWithPetUseCase,
     private val cleanPetUseCase: CleanPetUseCase,
+    private val sleepPetUseCase: SleepPetUseCase,
     private val getHungerStateUseCase: GetHungerStateUseCase,
     private val getHappinessStateUseCase: GetHappinessStateUseCase,
 ) {
@@ -58,6 +60,11 @@ class PetViewModel(
 
     fun clean() {
         cleanPetUseCase()
+        refreshUiState(errorMessage = null)
+    }
+
+    fun sleep() {
+        sleepPetUseCase()
         refreshUiState(errorMessage = null)
     }
 
