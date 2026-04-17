@@ -1,0 +1,47 @@
+CREATE TABLE pet_state (
+    id INTEGER NOT NULL PRIMARY KEY CHECK(id = 0),
+    pet_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    species TEXT NOT NULL,
+    hunger INTEGER NOT NULL,
+    happiness INTEGER NOT NULL,
+    energy INTEGER NOT NULL,
+    hygiene INTEGER NOT NULL,
+    health INTEGER NOT NULL,
+    created_at_epoch_millis INTEGER NOT NULL,
+    critical_hunger_streak INTEGER NOT NULL
+);
+
+selectState:
+SELECT *
+FROM pet_state
+WHERE id = 0;
+
+upsertState:
+INSERT OR REPLACE INTO pet_state(
+    id,
+    pet_id,
+    name,
+    species,
+    hunger,
+    happiness,
+    energy,
+    hygiene,
+    health,
+    created_at_epoch_millis,
+    critical_hunger_streak
+)
+VALUES (
+    0,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?
+);
+
