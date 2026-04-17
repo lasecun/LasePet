@@ -2,9 +2,11 @@ package es.itram
 
 import es.itram.data.repository.InMemoryPetRepository
 import es.itram.domain.model.FoodType
+import es.itram.domain.model.HungerState
 import es.itram.domain.model.PetSpecies
 import es.itram.domain.usecase.CreatePetUseCase
 import es.itram.domain.usecase.FeedPetUseCase
+import es.itram.domain.usecase.GetHungerStateUseCase
 import es.itram.domain.usecase.GetPetStatusUseCase
 import es.itram.domain.usecase.TickStatsUseCase
 import kotlin.test.Test
@@ -73,5 +75,85 @@ class ComposeAppCommonTest {
         val pet = repository.getPet()
         assertNotNull(pet)
         assertEquals(0, pet.stats.hunger)
+    }
+
+    @Test
+    fun hungerState_mapsThresholdsCorrectly() {
+        val getHungerState = GetHungerStateUseCase()
+
+        assertEquals(HungerState.NORMAL, getHungerState(59))
+        assertEquals(HungerState.ALERT, getHungerState(60))
+        assertEquals(HungerState.ALERT, getHungerState(79))
+        assertEquals(HungerState.CRITICAL, getHungerState(80))
+    }
+
+    @Test
+    fun tick_reducesHealth_afterConsecutiveCriticalHunger() {
+        val repository = InMemoryPetRepository()
+        val createPet = CreatePetUseCase(repository)
+        val tickStats = TickStatsUseCase(
+            petRepository = repository,
+            hungerDelta = 30,
+            criticalStreakForHealthPenalty = 2,
+            healthPenalty = 10,
+        )
+
+        createPet(name = "Luna", species = PetSpecies.CAT)
+
+        tickStats() // 50 -> normal
+        tickStats() // 80 -> critical streak 1
+        tickStats() // 100 -> critical streak 2 -> health penalty
+
+        val pet = repository.getPet()
+        assertNotNull(pet)
+        assertEquals(100, pet.stats.hunger)
+        assertEquals(80, pet.stats.health)
+        assertEquals(65, pet.stats.happiness)
+        assertEquals(2, pet.criticalHungerStreak)
+    }
+
+    @Test
+    fun feed_resetsCriticalHungerStreak_whenLeavingCritical() {
+        val repository = InMemoryPetRepository()
+        val createPet = CreatePetUseCase(repository)
+        val tickStats = TickStatsUseCase(
+            petRepository = repository,
+            hungerDelta = 60,
+            criticalStreakForHealthPenalty = 2,
+            healthPenalty = 10,
+        )
+        val feedPet = FeedPetUseCase(repository)
+
+        createPet(name = "Bolt", species = PetSpecies.DOG)
+
+        tickStats() // 80 -> critical streak 1
+        feedPet(FoodType.FEAST) // 60 -> alert -> streak reset
+        tickStats() // 100 -> critical streak 1 (no health penalty)
+
+        val pet = repository.getPet()
+        assertNotNull(pet)
+        assertEquals(90, pet.stats.health)
+        assertEquals(1, pet.criticalHungerStreak)
+    }
+
+    @Test
+    fun tick_floorsHappinessAt0_underLongCriticalStreak() {
+        val repository = InMemoryPetRepository()
+        val createPet = CreatePetUseCase(repository)
+        val tickStats = TickStatsUseCase(
+            petRepository = repository,
+            hungerDelta = 100,
+            criticalStreakForHealthPenalty = 1,
+            healthPenalty = 0,
+            happinessPenalty = 30,
+        )
+
+        createPet(name = "Nox", species = PetSpecies.DRAGON)
+
+        repeat(4) { tickStats() }
+
+        val pet = repository.getPet()
+        assertNotNull(pet)
+        assertEquals(0, pet.stats.happiness)
     }
 }

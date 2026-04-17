@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import es.itram.domain.model.FoodType
+import es.itram.domain.model.HungerState
 import es.itram.domain.model.PetSpecies
 import es.itram.presentation.AppContainer
 
@@ -105,6 +106,28 @@ fun App() {
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                 )
+                Text(
+                    text = "Felicidad: ${uiState.happiness}/100",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = "Salud: ${uiState.health}/100",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+
+                val hungerState = uiState.hungerState
+                if (hungerState != null) {
+                    val stateColor = when (hungerState) {
+                        HungerState.NORMAL -> MaterialTheme.colorScheme.primary
+                        HungerState.ALERT -> MaterialTheme.colorScheme.tertiary
+                        HungerState.CRITICAL -> MaterialTheme.colorScheme.error
+                    }
+                    Text(
+                        text = "Estado: ${hungerState.displayName}",
+                        color = stateColor,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
 
                 Text("Comida")
                 Row(
