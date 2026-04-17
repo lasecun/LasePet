@@ -21,5 +21,6 @@ data class PetUiState(
     val hygieneState: HygieneState? = null,
     val healthState: HealthState? = null,
     val healthRecoveryMessage: String? = null,
+    val recentEvents: List<String> = emptyList(),
     val errorMessage: String? = null,
 )

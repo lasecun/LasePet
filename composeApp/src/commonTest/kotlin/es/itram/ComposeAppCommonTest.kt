@@ -7,6 +7,8 @@ import es.itram.domain.model.HealthState
 import es.itram.domain.model.HappinessState
 import es.itram.domain.model.HungerState
 import es.itram.domain.model.HygieneState
+import es.itram.domain.model.PetEvent
+import es.itram.domain.model.PetEventType
 import es.itram.domain.model.PetSpecies
 import es.itram.domain.usecase.CreatePetUseCase
 import es.itram.domain.usecase.CleanPetUseCase
@@ -17,7 +19,9 @@ import es.itram.domain.usecase.GetHappinessStateUseCase
 import es.itram.domain.usecase.GetHungerStateUseCase
 import es.itram.domain.usecase.GetHygieneStateUseCase
 import es.itram.domain.usecase.GetPetStatusUseCase
+import es.itram.domain.usecase.GetRecentPetEventsUseCase
 import es.itram.domain.usecase.PlayWithPetUseCase
+import es.itram.domain.usecase.RecordPetEventUseCase
 import es.itram.domain.usecase.SleepPetUseCase
 import es.itram.domain.usecase.TickStatsUseCase
 import es.itram.presentation.PetViewModel
@@ -367,6 +371,8 @@ class ComposeAppCommonTest {
             playWithPetUseCase = PlayWithPetUseCase(repository),
             cleanPetUseCase = CleanPetUseCase(repository),
             sleepPetUseCase = SleepPetUseCase(repository),
+            recordPetEventUseCase = RecordPetEventUseCase(repository),
+            getRecentPetEventsUseCase = GetRecentPetEventsUseCase(repository),
             getHungerStateUseCase = GetHungerStateUseCase(),
             getHappinessStateUseCase = GetHappinessStateUseCase(),
             getEnergyStateUseCase = GetEnergyStateUseCase(),
@@ -378,5 +384,25 @@ class ComposeAppCommonTest {
         viewModel.tick()
 
         assertEquals("Recupera +3 salud", viewModel.uiState.healthRecoveryMessage)
+    }
+
+    @Test
+    fun recentEvents_keepsLastFive_inReverseChronologicalOrder() {
+        val repository = InMemoryPetRepository()
+        val recorder = RecordPetEventUseCase(repository)
+        val getter = GetRecentPetEventsUseCase(repository)
+        val petId = "pet-1"
+
+        recorder(PetEvent(petId, PetEventType.CREATED))
+        recorder(PetEvent(petId, PetEventType.FEED))
+        recorder(PetEvent(petId, PetEventType.PLAY))
+        recorder(PetEvent(petId, PetEventType.CLEAN))
+        recorder(PetEvent(petId, PetEventType.SLEEP))
+        recorder(PetEvent(petId, PetEventType.TICK))
+
+        val recent = getter(petId)
+        assertEquals(5, recent.size)
+        assertEquals(PetEventType.TICK, recent[0].type)
+        assertEquals(PetEventType.FEED, recent[4].type)
     }
 }

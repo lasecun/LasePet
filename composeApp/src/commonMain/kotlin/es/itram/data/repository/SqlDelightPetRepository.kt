@@ -2,6 +2,8 @@ package es.itram.data.repository
 
 import app.cash.sqldelight.db.SqlDriver
 import es.itram.db.LasePetDatabase
+import es.itram.domain.model.PetEvent
+import es.itram.domain.model.PetEventType
 import es.itram.domain.model.Pet
 import es.itram.domain.model.PetSpecies
 import es.itram.domain.model.Stats
@@ -47,6 +49,25 @@ class SqlDelightPetRepository(
             created_at_epoch_millis = pet.createdAtEpochMillis,
             critical_hunger_streak = pet.criticalHungerStreak.toLong(),
         )
+    }
+
+    override fun saveEvent(event: PetEvent) {
+        queries.insertEvent(
+            pet_id = event.petId,
+            event_type = event.type.name,
+        )
+        queries.trimEventsToFive(event.petId, event.petId)
+    }
+
+    override fun getRecentEvents(petId: String, limit: Int): List<PetEvent> {
+        return queries.selectRecentEvents(petId, limit.toLong())
+            .executeAsList()
+            .map { event ->
+                PetEvent(
+                    petId = event.pet_id,
+                    type = PetEventType.valueOf(event.event_type),
+                )
+            }
     }
 }
 

@@ -4,6 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import es.itram.domain.model.FoodType
+import es.itram.domain.model.PetEvent
+import es.itram.domain.model.PetEventType
 import es.itram.domain.model.PetSpecies
 import es.itram.domain.usecase.CreatePetUseCase
 import es.itram.domain.usecase.CleanPetUseCase
@@ -14,7 +16,9 @@ import es.itram.domain.usecase.GetHappinessStateUseCase
 import es.itram.domain.usecase.GetHungerStateUseCase
 import es.itram.domain.usecase.GetHygieneStateUseCase
 import es.itram.domain.usecase.GetPetStatusUseCase
+import es.itram.domain.usecase.GetRecentPetEventsUseCase
 import es.itram.domain.usecase.PlayWithPetUseCase
+import es.itram.domain.usecase.RecordPetEventUseCase
 import es.itram.domain.usecase.SleepPetUseCase
 import es.itram.domain.usecase.TickStatsUseCase
 
@@ -26,6 +30,8 @@ class PetViewModel(
     private val playWithPetUseCase: PlayWithPetUseCase,
     private val cleanPetUseCase: CleanPetUseCase,
     private val sleepPetUseCase: SleepPetUseCase,
+    private val recordPetEventUseCase: RecordPetEventUseCase,
+    private val getRecentPetEventsUseCase: GetRecentPetEventsUseCase,
     private val getHungerStateUseCase: GetHungerStateUseCase,
     private val getHappinessStateUseCase: GetHappinessStateUseCase,
     private val getEnergyStateUseCase: GetEnergyStateUseCase,
@@ -45,13 +51,17 @@ class PetViewModel(
             refreshUiState(errorMessage = "Escribe un nombre para tu mascota")
             return
         }
-        createPetUseCase(cleanName, species)
+        val pet = createPetUseCase(cleanName, species)
+        recordPetEventUseCase(PetEvent(petId = pet.id, type = PetEventType.CREATED))
         refreshUiState(errorMessage = null)
     }
 
     fun tick() {
         val previousHealth = getPetStatusUseCase()?.stats?.health
-        tickStatsUseCase()
+        val pet = tickStatsUseCase()
+        if (pet != null) {
+            recordPetEventUseCase(PetEvent(petId = pet.id, type = PetEventType.TICK))
+        }
         val currentHealth = getPetStatusUseCase()?.stats?.health
         val recoveredAmount = if (previousHealth != null && currentHealth != null) {
             (currentHealth - previousHealth).coerceAtLeast(0)
@@ -67,22 +77,34 @@ class PetViewModel(
     }
 
     fun feed(foodType: FoodType = FoodType.MEAL) {
-        feedPetUseCase(foodType)
+        val pet = feedPetUseCase(foodType)
+        if (pet != null) {
+            recordPetEventUseCase(PetEvent(petId = pet.id, type = PetEventType.FEED))
+        }
         refreshUiState(errorMessage = null, healthRecoveryMessage = null)
     }
 
     fun play() {
-        playWithPetUseCase()
+        val pet = playWithPetUseCase()
+        if (pet != null) {
+            recordPetEventUseCase(PetEvent(petId = pet.id, type = PetEventType.PLAY))
+        }
         refreshUiState(errorMessage = null, healthRecoveryMessage = null)
     }
 
     fun clean() {
-        cleanPetUseCase()
+        val pet = cleanPetUseCase()
+        if (pet != null) {
+            recordPetEventUseCase(PetEvent(petId = pet.id, type = PetEventType.CLEAN))
+        }
         refreshUiState(errorMessage = null, healthRecoveryMessage = null)
     }
 
     fun sleep() {
-        sleepPetUseCase()
+        val pet = sleepPetUseCase()
+        if (pet != null) {
+            recordPetEventUseCase(PetEvent(petId = pet.id, type = PetEventType.SLEEP))
+        }
         refreshUiState(errorMessage = null, healthRecoveryMessage = null)
     }
 
@@ -91,6 +113,8 @@ class PetViewModel(
         uiState = if (pet == null) {
             PetUiState(errorMessage = errorMessage, healthRecoveryMessage = healthRecoveryMessage)
         } else {
+            val recentEvents = getRecentPetEventsUseCase(pet.id)
+                .map { it.type.label }
             PetUiState(
                 hasPet = true,
                 petName = pet.name,
@@ -106,6 +130,7 @@ class PetViewModel(
                 hygieneState = getHygieneStateUseCase(pet.stats.hygiene),
                 healthState = getHealthStateUseCase(pet.stats.health),
                 healthRecoveryMessage = healthRecoveryMessage,
+                recentEvents = recentEvents,
                 errorMessage = errorMessage,
             )
         }

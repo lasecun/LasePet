@@ -1,0 +1,6 @@
+CREATE TABLE pet_event (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    pet_id TEXT NOT NULL,
+    event_type TEXT NOT NULL
+);
+
