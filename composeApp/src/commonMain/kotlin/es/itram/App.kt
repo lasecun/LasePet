@@ -8,7 +8,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.CleaningServices
+import androidx.compose.material.icons.filled.DinnerDining
+import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Hotel
+import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -21,11 +39,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import es.itram.domain.model.FoodType
 import es.itram.domain.model.EnergyState
+import es.itram.domain.model.FoodType
 import es.itram.domain.model.HealthState
 import es.itram.domain.model.HappinessState
 import es.itram.domain.model.HungerState
@@ -47,222 +67,301 @@ fun App() {
     MaterialTheme {
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .background(MaterialTheme.colorScheme.surface)
                 .safeContentPadding()
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("PocketPal", style = MaterialTheme.typography.headlineMedium)
+            HeaderCard(petName = if (uiState.hasPet) uiState.petName else null)
 
             if (!uiState.hasPet) {
-                Text("Crea tu primera mascota", style = MaterialTheme.typography.titleMedium)
-                OutlinedTextField(
-                    value = petNameInput,
-                    onValueChange = { petNameInput = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Nombre") },
-                    singleLine = true,
+                CreatePetCard(
+                    petNameInput = petNameInput,
+                    onNameChange = { petNameInput = it },
+                    selectedSpecies = selectedSpecies,
+                    onSpeciesSelected = { selectedSpeciesName = it.name },
+                    onCreatePet = { viewModel.createPet(name = petNameInput, species = selectedSpecies) },
                 )
-
-                Text("Especie")
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    PetSpecies.entries.forEach { species ->
-                        val isSelected = species == selectedSpecies
-                        val buttonModifier = Modifier.weight(1f)
-                        if (isSelected) {
-                            Button(
-                                onClick = { selectedSpeciesName = species.name },
-                                modifier = buttonModifier,
-                            ) {
-                                Text(species.displayName)
-                            }
-                        } else {
-                            OutlinedButton(
-                                onClick = { selectedSpeciesName = species.name },
-                                modifier = buttonModifier,
-                            ) {
-                                Text(species.displayName)
-                            }
-                        }
-                    }
-                }
-
-                Button(
-                    onClick = {
-                        viewModel.createPet(name = petNameInput, species = selectedSpecies)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Crear mascota")
-                }
             } else {
-                Text(
-                    text = "Mascota: ${uiState.petName} (${uiState.speciesName})",
-                    style = MaterialTheme.typography.titleMedium,
+                StatsCard(uiState)
+                StatesCard(uiState)
+                FoodActionsCard(onFeed = viewModel::feed)
+                CareActionsCard(
+                    onPlay = viewModel::play,
+                    onClean = viewModel::clean,
+                    onSleep = viewModel::sleep,
+                    onTick = viewModel::tick,
                 )
-                Text(
-                    text = "Hambre: ${uiState.hunger}/100",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = "Felicidad: ${uiState.happiness}/100",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = "Energia: ${uiState.energy}/100",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = "Higiene: ${uiState.hygiene}/100",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = "Salud: ${uiState.health}/100",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                if (uiState.healthRecoveryMessage != null) {
-                    Text(
-                        text = uiState.healthRecoveryMessage,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-
-                val hungerState = uiState.hungerState
-                if (hungerState != null) {
-                    val stateColor = when (hungerState) {
-                        HungerState.NORMAL -> MaterialTheme.colorScheme.primary
-                        HungerState.ALERT -> MaterialTheme.colorScheme.tertiary
-                        HungerState.CRITICAL -> MaterialTheme.colorScheme.error
-                    }
-                    Text(
-                        text = "Estado: ${hungerState.displayName}",
-                        color = stateColor,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-
-                val happinessState = uiState.happinessState
-                if (happinessState != null) {
-                    val happinessColor = when (happinessState) {
-                        HappinessState.NORMAL -> MaterialTheme.colorScheme.primary
-                        HappinessState.ALERT -> MaterialTheme.colorScheme.tertiary
-                        HappinessState.CRITICAL -> MaterialTheme.colorScheme.error
-                    }
-                    Text(
-                        text = "Estado felicidad: ${happinessState.displayName}",
-                        color = happinessColor,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-
-                val energyState = uiState.energyState
-                if (energyState != null) {
-                    val energyColor = when (energyState) {
-                        EnergyState.NORMAL -> MaterialTheme.colorScheme.primary
-                        EnergyState.ALERT -> MaterialTheme.colorScheme.tertiary
-                        EnergyState.CRITICAL -> MaterialTheme.colorScheme.error
-                    }
-                    Text(
-                        text = "Estado energia: ${energyState.displayName}",
-                        color = energyColor,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-
-                val hygieneState = uiState.hygieneState
-                if (hygieneState != null) {
-                    val hygieneColor = when (hygieneState) {
-                        HygieneState.NORMAL -> MaterialTheme.colorScheme.primary
-                        HygieneState.ALERT -> MaterialTheme.colorScheme.tertiary
-                        HygieneState.CRITICAL -> MaterialTheme.colorScheme.error
-                    }
-                    Text(
-                        text = "Estado higiene: ${hygieneState.displayName}",
-                        color = hygieneColor,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-
-                val healthState = uiState.healthState
-                if (healthState != null) {
-                    val healthColor = when (healthState) {
-                        HealthState.NORMAL -> MaterialTheme.colorScheme.primary
-                        HealthState.ALERT -> MaterialTheme.colorScheme.tertiary
-                        HealthState.CRITICAL -> MaterialTheme.colorScheme.error
-                    }
-                    Text(
-                        text = "Estado salud: ${healthState.displayName}",
-                        color = healthColor,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-
-                Text("Comida")
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    FoodType.entries.forEach { foodType ->
-                        val buttonModifier = Modifier.weight(1f)
-                        val label = "${foodType.displayName} (-${foodType.hungerReduction})"
-                        OutlinedButton(
-                            onClick = { viewModel.feed(foodType) },
-                            modifier = buttonModifier,
-                        ) {
-                            Text(label)
-                        }
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Button(
-                        onClick = { viewModel.play() },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text("Jugar")
-                    }
-                    Button(
-                        onClick = { viewModel.clean() },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text("Limpiar")
-                    }
-                }
-
-                Button(onClick = { viewModel.sleep() }) {
-                    Text("Dormir")
-                }
-
-                Button(onClick = { viewModel.tick() }) {
-                    Text("Avanzar tiempo (+5 hambre, -2 energia, -2 higiene)")
-                }
-
-                Text("Diario reciente", style = MaterialTheme.typography.titleMedium)
-                if (uiState.recentEvents.isEmpty()) {
-                    Text("Sin eventos todavía")
-                } else {
-                    uiState.recentEvents.forEach { event ->
-                        Text("- $event")
-                    }
-                }
+                DiaryCard(events = uiState.recentEvents)
             }
 
             if (uiState.errorMessage != null) {
                 Text(
                     text = uiState.errorMessage,
                     color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun HeaderCard(petName: String?) {
+    ElevatedCard(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("PocketPal", style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    text = petName?.let { "Cuidando de $it" } ?: "Tu mascota virtual",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            Icon(imageVector = Icons.Filled.Pets, contentDescription = null)
+        }
+    }
+}
+
+@Composable
+private fun CreatePetCard(
+    petNameInput: String,
+    onNameChange: (String) -> Unit,
+    selectedSpecies: PetSpecies,
+    onSpeciesSelected: (PetSpecies) -> Unit,
+    onCreatePet: () -> Unit,
+) {
+    Card(shape = RoundedCornerShape(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text("Crea tu primera mascota", style = MaterialTheme.typography.titleMedium)
+            OutlinedTextField(
+                value = petNameInput,
+                onValueChange = onNameChange,
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Nombre") },
+                singleLine = true,
+            )
+            Text("Especie")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                PetSpecies.entries.forEach { species ->
+                    val isSelected = species == selectedSpecies
+                    val buttonModifier = Modifier.weight(1f)
+                    if (isSelected) {
+                        Button(onClick = { onSpeciesSelected(species) }, modifier = buttonModifier) {
+                            Text(species.displayName)
+                        }
+                    } else {
+                        OutlinedButton(onClick = { onSpeciesSelected(species) }, modifier = buttonModifier) {
+                            Text(species.displayName)
+                        }
+                    }
+                }
+            }
+            Button(onClick = onCreatePet, modifier = Modifier.fillMaxWidth()) {
+                Text("Crear mascota")
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatsCard(uiState: es.itram.presentation.PetUiState) {
+    Card(shape = RoundedCornerShape(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = "Mascota: ${uiState.petName} (${uiState.speciesName})",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text("Hambre: ${uiState.hunger}/100")
+            Text("Felicidad: ${uiState.happiness}/100")
+            Text("Energia: ${uiState.energy}/100")
+            Text("Higiene: ${uiState.hygiene}/100")
+            Text("Salud: ${uiState.health}/100", fontWeight = FontWeight.SemiBold)
+            if (uiState.healthRecoveryMessage != null) {
+                Text(
+                    text = uiState.healthRecoveryMessage,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatesCard(uiState: es.itram.presentation.PetUiState) {
+    Card(shape = RoundedCornerShape(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            StateRow("Hambre", uiState.hungerState?.displayName, colorFor(uiState.hungerState))
+            StateRow("Felicidad", uiState.happinessState?.displayName, colorFor(uiState.happinessState))
+            StateRow("Energia", uiState.energyState?.displayName, colorFor(uiState.energyState))
+            StateRow("Higiene", uiState.hygieneState?.displayName, colorFor(uiState.hygieneState))
+            StateRow("Salud", uiState.healthState?.displayName, colorFor(uiState.healthState))
+        }
+    }
+}
+
+@Composable
+private fun StateRow(label: String, value: String?, color: Color) {
+    if (value == null) return
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label)
+        Text(value, color = color, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
+private fun FoodActionsCard(onFeed: (FoodType) -> Unit) {
+    Card(shape = RoundedCornerShape(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            SectionTitle(icon = Icons.Filled.Restaurant, title = "Comida")
+            FoodType.entries.forEach { foodType ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(foodType.displayName, style = MaterialTheme.typography.titleSmall)
+                        Text("Reduce hambre en ${foodType.hungerReduction}", style = MaterialTheme.typography.labelMedium)
+                    }
+                    OutlinedButton(onClick = { onFeed(foodType) }) {
+                        Icon(
+                            imageVector = foodIcon(foodType),
+                            contentDescription = "Usar ${foodType.displayName}",
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun foodIcon(foodType: FoodType): ImageVector {
+    return when (foodType) {
+        FoodType.SNACK -> Icons.Filled.Fastfood
+        FoodType.MEAL -> Icons.Filled.Restaurant
+        FoodType.FEAST -> Icons.Filled.DinnerDining
+    }
+}
+
+@Composable
+private fun CareActionsCard(
+    onPlay: () -> Unit,
+    onClean: () -> Unit,
+    onSleep: () -> Unit,
+    onTick: () -> Unit,
+) {
+    Card(shape = RoundedCornerShape(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            SectionTitle(icon = Icons.Filled.Schedule, title = "Acciones")
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                IconActionButton(Icons.Filled.SportsEsports, "Jugar", onPlay, Modifier.weight(1f))
+                IconActionButton(Icons.Filled.CleaningServices, "Limpiar", onClean, Modifier.weight(1f))
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                IconActionButton(Icons.Filled.Hotel, "Dormir", onSleep, Modifier.weight(1f))
+                IconActionButton(Icons.Filled.Schedule, "Tick", onTick, Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun IconActionButton(icon: ImageVector, text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Button(onClick = onClick, modifier = modifier) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Icon(imageVector = icon, contentDescription = null)
+            Text(text)
+        }
+    }
+}
+
+@Composable
+private fun DiaryCard(events: List<String>) {
+    Card(shape = RoundedCornerShape(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            SectionTitle(icon = Icons.AutoMirrored.Filled.List, title = "Diario reciente")
+            if (events.isEmpty()) {
+                Text("Sin eventos todavia")
+            } else {
+                events.forEach { event ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.Favorite, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Text("  $event")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(icon: ImageVector, title: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(imageVector = icon, contentDescription = null)
+        Text("  $title", style = MaterialTheme.typography.titleMedium)
+    }
+}
+
+@Composable
+private fun colorFor(state: Any?): Color {
+    return when (state) {
+        HungerState.CRITICAL, HappinessState.CRITICAL, EnergyState.CRITICAL, HygieneState.CRITICAL, HealthState.CRITICAL -> MaterialTheme.colorScheme.error
+        HungerState.ALERT, HappinessState.ALERT, EnergyState.ALERT, HygieneState.ALERT, HealthState.ALERT -> MaterialTheme.colorScheme.tertiary
+        HungerState.NORMAL, HappinessState.NORMAL, EnergyState.NORMAL, HygieneState.NORMAL, HealthState.NORMAL -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.onSurface
     }
 }
