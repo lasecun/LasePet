@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -235,11 +236,11 @@ private fun StatsCard(uiState: es.itram.presentation.PetUiState) {
                 text = "Mascota: ${uiState.petName} (${uiState.speciesName})",
                 style = MaterialTheme.typography.titleMedium,
             )
-            Text("Hambre: ${uiState.hunger}/100")
-            Text("Felicidad: ${uiState.happiness}/100")
-            Text("Energia: ${uiState.energy}/100")
-            Text("Higiene: ${uiState.hygiene}/100")
-            Text("Salud: ${uiState.health}/100", fontWeight = FontWeight.SemiBold)
+            StatMetricRow(Icons.Filled.Fastfood, "Hambre", uiState.hunger, invertGradient = true)
+            StatMetricRow(Icons.Filled.Favorite, "Felicidad", uiState.happiness)
+            StatMetricRow(Icons.Filled.Hotel, "Energia", uiState.energy)
+            StatMetricRow(Icons.Filled.CleaningServices, "Higiene", uiState.hygiene)
+            StatMetricRow(Icons.Filled.Pets, "Salud", uiState.health, highlight = true)
             if (uiState.healthRecoveryMessage != null) {
                 Text(
                     text = uiState.healthRecoveryMessage,
@@ -248,6 +249,41 @@ private fun StatsCard(uiState: es.itram.presentation.PetUiState) {
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun StatMetricRow(
+    icon: ImageVector,
+    label: String,
+    value: Int,
+    highlight: Boolean = false,
+    invertGradient: Boolean = false,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = metricTintColor(value, invert = invertGradient),
+        )
+        Text(
+            text = "$label: $value/100",
+            fontWeight = if (highlight) FontWeight.SemiBold else FontWeight.Normal,
+        )
+    }
+}
+
+private fun metricTintColor(value: Int, invert: Boolean = false): Color {
+    val normalized = (value.coerceIn(0, 100) / 100f)
+    val low = Color(0xFFD32F2F)
+    val high = Color(0xFF2E7D32)
+    return if (invert) {
+        lerp(high, low, normalized)
+    } else {
+        lerp(low, high, normalized)
     }
 }
 
