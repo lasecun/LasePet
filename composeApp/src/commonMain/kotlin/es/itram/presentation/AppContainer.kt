@@ -10,7 +10,9 @@ import es.itram.domain.usecase.GetHappinessStateUseCase
 import es.itram.domain.usecase.GetHungerStateUseCase
 import es.itram.domain.usecase.GetHygieneStateUseCase
 import es.itram.domain.usecase.GetPetStatusUseCase
+import es.itram.domain.usecase.GetRecentPetEventsUseCase
 import es.itram.domain.usecase.PlayWithPetUseCase
+import es.itram.domain.usecase.RecordPetEventUseCase
 import es.itram.domain.usecase.SleepPetUseCase
 import es.itram.domain.usecase.TickStatsUseCase
 
@@ -24,6 +26,8 @@ object AppContainer {
             playWithPetUseCase = PlayWithPetUseCase(petRepository),
             cleanPetUseCase = CleanPetUseCase(petRepository),
             sleepPetUseCase = SleepPetUseCase(petRepository),
+            recordPetEventUseCase = RecordPetEventUseCase(petRepository),
+            getRecentPetEventsUseCase = GetRecentPetEventsUseCase(petRepository),
             getHungerStateUseCase = GetHungerStateUseCase(),
             getHappinessStateUseCase = GetHappinessStateUseCase(),
             getEnergyStateUseCase = GetEnergyStateUseCase(),

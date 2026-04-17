@@ -12,6 +12,12 @@ CREATE TABLE pet_state (
     critical_hunger_streak INTEGER NOT NULL
 );
 
+CREATE TABLE pet_event (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    pet_id TEXT NOT NULL,
+    event_type TEXT NOT NULL
+);
+
 selectState:
 SELECT *
 FROM pet_state
@@ -43,5 +49,33 @@ VALUES (
     ?,
     ?,
     ?
+);
+
+insertEvent:
+INSERT INTO pet_event(
+    pet_id,
+    event_type
+)
+VALUES (
+    ?,
+    ?
+);
+
+selectRecentEvents:
+SELECT id, pet_id, event_type
+FROM pet_event
+WHERE pet_id = ?
+ORDER BY id DESC
+LIMIT ?;
+
+trimEventsToFive:
+DELETE FROM pet_event
+WHERE pet_id = ?
+AND id NOT IN (
+    SELECT id
+    FROM pet_event
+    WHERE pet_id = ?
+    ORDER BY id DESC
+    LIMIT 5
 );
 

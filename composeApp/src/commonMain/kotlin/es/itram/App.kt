@@ -246,6 +246,15 @@ fun App() {
                 Button(onClick = { viewModel.tick() }) {
                     Text("Avanzar tiempo (+5 hambre, -2 energia, -2 higiene)")
                 }
+
+                Text("Diario reciente", style = MaterialTheme.typography.titleMedium)
+                if (uiState.recentEvents.isEmpty()) {
+                    Text("Sin eventos todavía")
+                } else {
+                    uiState.recentEvents.forEach { event ->
+                        Text("- $event")
+                    }
+                }
             }
 
             if (uiState.errorMessage != null) {
