@@ -28,11 +28,13 @@ import es.itram.domain.model.FoodType
 import es.itram.domain.model.HungerState
 import es.itram.domain.model.PetSpecies
 import es.itram.presentation.AppContainer
+import es.itram.presentation.rememberPlatformPetRepository
 
 @Composable
 @Preview
 fun App() {
-    val viewModel = remember { AppContainer.createPetViewModel() }
+    val petRepository = rememberPlatformPetRepository()
+    val viewModel = remember(petRepository) { AppContainer.createPetViewModel(petRepository) }
     val uiState = viewModel.uiState
     var petNameInput by rememberSaveable { mutableStateOf("") }
     var selectedSpeciesName by rememberSaveable { mutableStateOf(PetSpecies.DOG.name) }
