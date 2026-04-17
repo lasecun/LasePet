@@ -229,4 +229,26 @@ class ComposeAppCommonTest {
         assertNotNull(pet)
         assertEquals(100, pet.stats.energy)
     }
+
+    @Test
+    fun tick_reducesEnergyAndHygiene_andFloorsAt0() {
+        val repository = InMemoryPetRepository()
+        val createPet = CreatePetUseCase(repository)
+        val tickStats = TickStatsUseCase(
+            petRepository = repository,
+            hungerDelta = 0,
+            energyDelta = -40,
+            hygieneDelta = -50,
+        )
+
+        createPet(name = "Duna", species = PetSpecies.CAT)
+
+        tickStats()
+        tickStats()
+
+        val pet = repository.getPet()
+        assertNotNull(pet)
+        assertEquals(0, pet.stats.energy)
+        assertEquals(0, pet.stats.hygiene)
+    }
 }

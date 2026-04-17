@@ -7,6 +7,8 @@ import es.itram.domain.repository.PetRepository
 class TickStatsUseCase(
     private val petRepository: PetRepository,
     private val hungerDelta: Int = 5,
+    private val energyDelta: Int = -2,
+    private val hygieneDelta: Int = -2,
     private val criticalStreakForHealthPenalty: Int = 3,
     private val healthPenalty: Int = 10,
     private val happinessPenalty: Int = 5,
@@ -15,16 +17,19 @@ class TickStatsUseCase(
     operator fun invoke(): Pet? {
         val pet = petRepository.getPet() ?: return null
 
-        val hungerUpdatedStats = pet.stats.withHungerDelta(hungerDelta)
-        val isCritical = getHungerStateUseCase(hungerUpdatedStats.hunger) == HungerState.CRITICAL
+        val tickUpdatedStats = pet.stats
+            .withHungerDelta(hungerDelta)
+            .withEnergyDelta(energyDelta)
+            .withHygieneDelta(hygieneDelta)
+        val isCritical = getHungerStateUseCase(tickUpdatedStats.hunger) == HungerState.CRITICAL
         val nextCriticalStreak = if (isCritical) pet.criticalHungerStreak + 1 else 0
 
         val nextStats = if (nextCriticalStreak >= criticalStreakForHealthPenalty) {
-            hungerUpdatedStats
+            tickUpdatedStats
                 .withHealthDelta(-healthPenalty)
                 .withHappinessDelta(-happinessPenalty)
         } else {
-            hungerUpdatedStats
+            tickUpdatedStats
         }
 
         val updated = pet.copy(
