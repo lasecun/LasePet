@@ -12,6 +12,7 @@ import es.itram.domain.usecase.GetHappinessStateUseCase
 import es.itram.domain.usecase.GetHungerStateUseCase
 import es.itram.domain.usecase.GetPetStatusUseCase
 import es.itram.domain.usecase.PlayWithPetUseCase
+import es.itram.domain.usecase.SleepPetUseCase
 import es.itram.domain.usecase.TickStatsUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -198,5 +199,34 @@ class ComposeAppCommonTest {
         val pet = repository.getPet()
         assertNotNull(pet)
         assertEquals(100, pet.stats.hygiene)
+    }
+
+    @Test
+    fun sleep_increasesEnergy_andHunger() {
+        val repository = InMemoryPetRepository()
+        val createPet = CreatePetUseCase(repository)
+        val sleepPet = SleepPetUseCase(repository)
+
+        createPet(name = "Mora", species = PetSpecies.CAT)
+        sleepPet()
+
+        val pet = repository.getPet()
+        assertNotNull(pet)
+        assertEquals(95, pet.stats.energy)
+        assertEquals(25, pet.stats.hunger)
+    }
+
+    @Test
+    fun sleep_capsEnergyAt100() {
+        val repository = InMemoryPetRepository()
+        val createPet = CreatePetUseCase(repository)
+        val sleepPet = SleepPetUseCase(repository, energyBoost = 50, hungerIncrease = 0)
+
+        createPet(name = "Lio", species = PetSpecies.DOG)
+        sleepPet()
+
+        val pet = repository.getPet()
+        assertNotNull(pet)
+        assertEquals(100, pet.stats.energy)
     }
 }
