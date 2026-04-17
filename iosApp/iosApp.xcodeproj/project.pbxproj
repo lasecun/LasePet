@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		BB1B2C3D4E5F6A7B8C9D0E1F /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = AA1B2C3D4E5F6A7B8C9D0E1F /* libsqlite3.tbd */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		EC7FE0A18B9A90B273D9E103 /* LasePet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LasePet.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA1B2C3D4E5F6A7B8C9D0E1F /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -41,6 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB1B2C3D4E5F6A7B8C9D0E1F /* libsqlite3.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,6 +59,7 @@
 				86570C98755CE83CD11CA681 /* Configuration */,
 				2C69DBE99D7F0FF8ED235706 /* iosApp */,
 				A94F968983753D0BEA6837CE /* Products */,
+				AA1B2C3D4E5F6A7B8C9D0E1F /* libsqlite3.tbd */,
 			);
 			sourceTree = "<group>";
 		};
