@@ -8,8 +8,11 @@ import es.itram.domain.model.PetSpecies
 import es.itram.domain.usecase.CreatePetUseCase
 import es.itram.domain.usecase.CleanPetUseCase
 import es.itram.domain.usecase.FeedPetUseCase
+import es.itram.domain.usecase.GetEnergyStateUseCase
+import es.itram.domain.usecase.GetHealthStateUseCase
 import es.itram.domain.usecase.GetHappinessStateUseCase
 import es.itram.domain.usecase.GetHungerStateUseCase
+import es.itram.domain.usecase.GetHygieneStateUseCase
 import es.itram.domain.usecase.GetPetStatusUseCase
 import es.itram.domain.usecase.PlayWithPetUseCase
 import es.itram.domain.usecase.SleepPetUseCase
@@ -25,6 +28,9 @@ class PetViewModel(
     private val sleepPetUseCase: SleepPetUseCase,
     private val getHungerStateUseCase: GetHungerStateUseCase,
     private val getHappinessStateUseCase: GetHappinessStateUseCase,
+    private val getEnergyStateUseCase: GetEnergyStateUseCase,
+    private val getHygieneStateUseCase: GetHygieneStateUseCase,
+    private val getHealthStateUseCase: GetHealthStateUseCase,
 ) {
     var uiState by mutableStateOf(PetUiState())
         private set
@@ -96,6 +102,9 @@ class PetViewModel(
                 health = pet.stats.health,
                 hungerState = getHungerStateUseCase(pet.stats.hunger),
                 happinessState = getHappinessStateUseCase(pet.stats.happiness),
+                energyState = getEnergyStateUseCase(pet.stats.energy),
+                hygieneState = getHygieneStateUseCase(pet.stats.hygiene),
+                healthState = getHealthStateUseCase(pet.stats.health),
                 healthRecoveryMessage = healthRecoveryMessage,
                 errorMessage = errorMessage,
             )

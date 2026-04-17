@@ -25,8 +25,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import es.itram.domain.model.FoodType
+import es.itram.domain.model.EnergyState
+import es.itram.domain.model.HealthState
 import es.itram.domain.model.HappinessState
 import es.itram.domain.model.HungerState
+import es.itram.domain.model.HygieneState
 import es.itram.domain.model.PetSpecies
 import es.itram.presentation.AppContainer
 import es.itram.presentation.rememberPlatformPetRepository
@@ -155,6 +158,48 @@ fun App() {
                     Text(
                         text = "Estado felicidad: ${happinessState.displayName}",
                         color = happinessColor,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+
+                val energyState = uiState.energyState
+                if (energyState != null) {
+                    val energyColor = when (energyState) {
+                        EnergyState.NORMAL -> MaterialTheme.colorScheme.primary
+                        EnergyState.ALERT -> MaterialTheme.colorScheme.tertiary
+                        EnergyState.CRITICAL -> MaterialTheme.colorScheme.error
+                    }
+                    Text(
+                        text = "Estado energia: ${energyState.displayName}",
+                        color = energyColor,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+
+                val hygieneState = uiState.hygieneState
+                if (hygieneState != null) {
+                    val hygieneColor = when (hygieneState) {
+                        HygieneState.NORMAL -> MaterialTheme.colorScheme.primary
+                        HygieneState.ALERT -> MaterialTheme.colorScheme.tertiary
+                        HygieneState.CRITICAL -> MaterialTheme.colorScheme.error
+                    }
+                    Text(
+                        text = "Estado higiene: ${hygieneState.displayName}",
+                        color = hygieneColor,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+
+                val healthState = uiState.healthState
+                if (healthState != null) {
+                    val healthColor = when (healthState) {
+                        HealthState.NORMAL -> MaterialTheme.colorScheme.primary
+                        HealthState.ALERT -> MaterialTheme.colorScheme.tertiary
+                        HealthState.CRITICAL -> MaterialTheme.colorScheme.error
+                    }
+                    Text(
+                        text = "Estado salud: ${healthState.displayName}",
+                        color = healthColor,
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
