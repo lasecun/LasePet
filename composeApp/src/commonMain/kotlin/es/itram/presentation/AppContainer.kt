@@ -2,9 +2,12 @@ package es.itram.presentation
 
 import es.itram.domain.repository.PetRepository
 import es.itram.domain.usecase.CreatePetUseCase
+import es.itram.domain.usecase.CleanPetUseCase
 import es.itram.domain.usecase.FeedPetUseCase
+import es.itram.domain.usecase.GetHappinessStateUseCase
 import es.itram.domain.usecase.GetHungerStateUseCase
 import es.itram.domain.usecase.GetPetStatusUseCase
+import es.itram.domain.usecase.PlayWithPetUseCase
 import es.itram.domain.usecase.TickStatsUseCase
 
 object AppContainer {
@@ -14,7 +17,10 @@ object AppContainer {
             getPetStatusUseCase = GetPetStatusUseCase(petRepository),
             tickStatsUseCase = TickStatsUseCase(petRepository),
             feedPetUseCase = FeedPetUseCase(petRepository),
+            playWithPetUseCase = PlayWithPetUseCase(petRepository),
+            cleanPetUseCase = CleanPetUseCase(petRepository),
             getHungerStateUseCase = GetHungerStateUseCase(),
+            getHappinessStateUseCase = GetHappinessStateUseCase(),
         )
     }
 }

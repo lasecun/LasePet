@@ -2,12 +2,16 @@ package es.itram
 
 import es.itram.data.repository.InMemoryPetRepository
 import es.itram.domain.model.FoodType
+import es.itram.domain.model.HappinessState
 import es.itram.domain.model.HungerState
 import es.itram.domain.model.PetSpecies
 import es.itram.domain.usecase.CreatePetUseCase
+import es.itram.domain.usecase.CleanPetUseCase
 import es.itram.domain.usecase.FeedPetUseCase
+import es.itram.domain.usecase.GetHappinessStateUseCase
 import es.itram.domain.usecase.GetHungerStateUseCase
 import es.itram.domain.usecase.GetPetStatusUseCase
+import es.itram.domain.usecase.PlayWithPetUseCase
 import es.itram.domain.usecase.TickStatsUseCase
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -88,6 +92,16 @@ class ComposeAppCommonTest {
     }
 
     @Test
+    fun happinessState_mapsThresholdsCorrectly() {
+        val getHappinessState = GetHappinessStateUseCase()
+
+        assertEquals(HappinessState.CRITICAL, getHappinessState(39))
+        assertEquals(HappinessState.ALERT, getHappinessState(40))
+        assertEquals(HappinessState.ALERT, getHappinessState(59))
+        assertEquals(HappinessState.NORMAL, getHappinessState(60))
+    }
+
+    @Test
     fun tick_reducesHealth_afterConsecutiveCriticalHunger() {
         val repository = InMemoryPetRepository()
         val createPet = CreatePetUseCase(repository)
@@ -155,5 +169,34 @@ class ComposeAppCommonTest {
         val pet = repository.getPet()
         assertNotNull(pet)
         assertEquals(0, pet.stats.happiness)
+    }
+
+    @Test
+    fun play_increasesHappiness_andReducesEnergy() {
+        val repository = InMemoryPetRepository()
+        val createPet = CreatePetUseCase(repository)
+        val playWithPet = PlayWithPetUseCase(repository)
+
+        createPet(name = "Kira", species = PetSpecies.CAT)
+        playWithPet()
+
+        val pet = repository.getPet()
+        assertNotNull(pet)
+        assertEquals(80, pet.stats.happiness)
+        assertEquals(60, pet.stats.energy)
+    }
+
+    @Test
+    fun clean_increasesHygiene_andCapsAt100() {
+        val repository = InMemoryPetRepository()
+        val createPet = CreatePetUseCase(repository)
+        val cleanPet = CleanPetUseCase(repository, hygieneBoost = 50, happinessBoost = 0)
+
+        createPet(name = "Toby", species = PetSpecies.DOG)
+        cleanPet()
+
+        val pet = repository.getPet()
+        assertNotNull(pet)
+        assertEquals(100, pet.stats.hygiene)
     }
 }

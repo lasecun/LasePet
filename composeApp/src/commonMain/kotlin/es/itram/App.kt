@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import es.itram.domain.model.FoodType
+import es.itram.domain.model.HappinessState
 import es.itram.domain.model.HungerState
 import es.itram.domain.model.PetSpecies
 import es.itram.presentation.AppContainer
@@ -39,8 +40,6 @@ fun App() {
     var petNameInput by rememberSaveable { mutableStateOf("") }
     var selectedSpeciesName by rememberSaveable { mutableStateOf(PetSpecies.DOG.name) }
     val selectedSpecies = PetSpecies.valueOf(selectedSpeciesName)
-    var selectedFoodName by rememberSaveable { mutableStateOf(FoodType.MEAL.name) }
-    val selectedFood = FoodType.valueOf(selectedFoodName)
 
     MaterialTheme {
         Column(
@@ -113,6 +112,14 @@ fun App() {
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
+                    text = "Energia: ${uiState.energy}/100",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = "Higiene: ${uiState.hygiene}/100",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
                     text = "Salud: ${uiState.health}/100",
                     style = MaterialTheme.typography.titleMedium,
                 )
@@ -131,40 +138,57 @@ fun App() {
                     )
                 }
 
+                val happinessState = uiState.happinessState
+                if (happinessState != null) {
+                    val happinessColor = when (happinessState) {
+                        HappinessState.NORMAL -> MaterialTheme.colorScheme.primary
+                        HappinessState.ALERT -> MaterialTheme.colorScheme.tertiary
+                        HappinessState.CRITICAL -> MaterialTheme.colorScheme.error
+                    }
+                    Text(
+                        text = "Estado felicidad: ${happinessState.displayName}",
+                        color = happinessColor,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+
                 Text("Comida")
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     FoodType.entries.forEach { foodType ->
-                        val isSelected = foodType == selectedFood
                         val buttonModifier = Modifier.weight(1f)
                         val label = "${foodType.displayName} (-${foodType.hungerReduction})"
-                        if (isSelected) {
-                            Button(
-                                onClick = { selectedFoodName = foodType.name },
-                                modifier = buttonModifier,
-                            ) {
-                                Text(label)
-                            }
-                        } else {
-                            OutlinedButton(
-                                onClick = { selectedFoodName = foodType.name },
-                                modifier = buttonModifier,
-                            ) {
-                                Text(label)
-                            }
+                        OutlinedButton(
+                            onClick = { viewModel.feed(foodType) },
+                            modifier = buttonModifier,
+                        ) {
+                            Text(label)
                         }
                     }
                 }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { viewModel.feed(selectedFood) }) {
-                        Text("Dar de comer")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Button(
+                        onClick = { viewModel.play() },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("Jugar")
                     }
-                    Button(onClick = { viewModel.tick() }) {
-                        Text("Avanzar tiempo (+5 hambre)")
+                    Button(
+                        onClick = { viewModel.clean() },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("Limpiar")
                     }
+                }
+
+                Button(onClick = { viewModel.tick() }) {
+                    Text("Avanzar tiempo (+5 hambre)")
                 }
             }
 
