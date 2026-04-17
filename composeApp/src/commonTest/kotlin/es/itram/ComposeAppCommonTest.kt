@@ -2,14 +2,20 @@ package es.itram
 
 import es.itram.data.repository.InMemoryPetRepository
 import es.itram.domain.model.FoodType
+import es.itram.domain.model.EnergyState
+import es.itram.domain.model.HealthState
 import es.itram.domain.model.HappinessState
 import es.itram.domain.model.HungerState
+import es.itram.domain.model.HygieneState
 import es.itram.domain.model.PetSpecies
 import es.itram.domain.usecase.CreatePetUseCase
 import es.itram.domain.usecase.CleanPetUseCase
 import es.itram.domain.usecase.FeedPetUseCase
+import es.itram.domain.usecase.GetEnergyStateUseCase
+import es.itram.domain.usecase.GetHealthStateUseCase
 import es.itram.domain.usecase.GetHappinessStateUseCase
 import es.itram.domain.usecase.GetHungerStateUseCase
+import es.itram.domain.usecase.GetHygieneStateUseCase
 import es.itram.domain.usecase.GetPetStatusUseCase
 import es.itram.domain.usecase.PlayWithPetUseCase
 import es.itram.domain.usecase.SleepPetUseCase
@@ -101,6 +107,36 @@ class ComposeAppCommonTest {
         assertEquals(HappinessState.ALERT, getHappinessState(40))
         assertEquals(HappinessState.ALERT, getHappinessState(59))
         assertEquals(HappinessState.NORMAL, getHappinessState(60))
+    }
+
+    @Test
+    fun energyState_mapsThresholdsCorrectly() {
+        val getEnergyState = GetEnergyStateUseCase()
+
+        assertEquals(EnergyState.CRITICAL, getEnergyState(39))
+        assertEquals(EnergyState.ALERT, getEnergyState(40))
+        assertEquals(EnergyState.ALERT, getEnergyState(59))
+        assertEquals(EnergyState.NORMAL, getEnergyState(60))
+    }
+
+    @Test
+    fun hygieneState_mapsThresholdsCorrectly() {
+        val getHygieneState = GetHygieneStateUseCase()
+
+        assertEquals(HygieneState.CRITICAL, getHygieneState(39))
+        assertEquals(HygieneState.ALERT, getHygieneState(40))
+        assertEquals(HygieneState.ALERT, getHygieneState(59))
+        assertEquals(HygieneState.NORMAL, getHygieneState(60))
+    }
+
+    @Test
+    fun healthState_mapsThresholdsCorrectly() {
+        val getHealthState = GetHealthStateUseCase()
+
+        assertEquals(HealthState.CRITICAL, getHealthState(39))
+        assertEquals(HealthState.ALERT, getHealthState(40))
+        assertEquals(HealthState.ALERT, getHealthState(59))
+        assertEquals(HealthState.NORMAL, getHealthState(60))
     }
 
     @Test
@@ -333,6 +369,9 @@ class ComposeAppCommonTest {
             sleepPetUseCase = SleepPetUseCase(repository),
             getHungerStateUseCase = GetHungerStateUseCase(),
             getHappinessStateUseCase = GetHappinessStateUseCase(),
+            getEnergyStateUseCase = GetEnergyStateUseCase(),
+            getHygieneStateUseCase = GetHygieneStateUseCase(),
+            getHealthStateUseCase = GetHealthStateUseCase(),
         )
 
         viewModel.createPet(name = "Mika", species = PetSpecies.CAT)
