@@ -192,7 +192,7 @@ fun App() {
                 }
 
                 Button(onClick = { viewModel.tick() }) {
-                    Text("Avanzar tiempo (+5 hambre)")
+                    Text("Avanzar tiempo (+5 hambre, -2 energia, -2 higiene)")
                 }
             }
 
