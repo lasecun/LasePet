@@ -44,34 +44,46 @@ class PetViewModel(
     }
 
     fun tick() {
+        val previousHealth = getPetStatusUseCase()?.stats?.health
         tickStatsUseCase()
-        refreshUiState(errorMessage = null)
+        val currentHealth = getPetStatusUseCase()?.stats?.health
+        val recoveredAmount = if (previousHealth != null && currentHealth != null) {
+            (currentHealth - previousHealth).coerceAtLeast(0)
+        } else {
+            0
+        }
+        val recoveryMessage = if (recoveredAmount > 0) {
+            "Recupera +$recoveredAmount salud"
+        } else {
+            null
+        }
+        refreshUiState(errorMessage = null, healthRecoveryMessage = recoveryMessage)
     }
 
     fun feed(foodType: FoodType = FoodType.MEAL) {
         feedPetUseCase(foodType)
-        refreshUiState(errorMessage = null)
+        refreshUiState(errorMessage = null, healthRecoveryMessage = null)
     }
 
     fun play() {
         playWithPetUseCase()
-        refreshUiState(errorMessage = null)
+        refreshUiState(errorMessage = null, healthRecoveryMessage = null)
     }
 
     fun clean() {
         cleanPetUseCase()
-        refreshUiState(errorMessage = null)
+        refreshUiState(errorMessage = null, healthRecoveryMessage = null)
     }
 
     fun sleep() {
         sleepPetUseCase()
-        refreshUiState(errorMessage = null)
+        refreshUiState(errorMessage = null, healthRecoveryMessage = null)
     }
 
-    private fun refreshUiState(errorMessage: String?) {
+    private fun refreshUiState(errorMessage: String?, healthRecoveryMessage: String? = null) {
         val pet = getPetStatusUseCase()
         uiState = if (pet == null) {
-            PetUiState(errorMessage = errorMessage)
+            PetUiState(errorMessage = errorMessage, healthRecoveryMessage = healthRecoveryMessage)
         } else {
             PetUiState(
                 hasPet = true,
@@ -84,6 +96,7 @@ class PetViewModel(
                 health = pet.stats.health,
                 hungerState = getHungerStateUseCase(pet.stats.hunger),
                 happinessState = getHappinessStateUseCase(pet.stats.happiness),
+                healthRecoveryMessage = healthRecoveryMessage,
                 errorMessage = errorMessage,
             )
         }

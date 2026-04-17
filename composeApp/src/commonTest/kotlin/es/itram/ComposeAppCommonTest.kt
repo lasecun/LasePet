@@ -14,6 +14,7 @@ import es.itram.domain.usecase.GetPetStatusUseCase
 import es.itram.domain.usecase.PlayWithPetUseCase
 import es.itram.domain.usecase.SleepPetUseCase
 import es.itram.domain.usecase.TickStatsUseCase
+import es.itram.presentation.PetViewModel
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -250,5 +251,93 @@ class ComposeAppCommonTest {
         assertNotNull(pet)
         assertEquals(0, pet.stats.energy)
         assertEquals(0, pet.stats.hygiene)
+    }
+
+    @Test
+    fun tick_recoversHealth_whenPetIsWellCared() {
+        val repository = InMemoryPetRepository()
+        val createPet = CreatePetUseCase(repository)
+        val tickStats = TickStatsUseCase(
+            petRepository = repository,
+            hungerDelta = 0,
+            energyDelta = 0,
+            hygieneDelta = 0,
+            healthRecovery = 4,
+        )
+
+        createPet(name = "Nala", species = PetSpecies.CAT)
+        tickStats()
+
+        val pet = repository.getPet()
+        assertNotNull(pet)
+        assertEquals(94, pet.stats.health)
+    }
+
+    @Test
+    fun tick_doesNotRecoverHealth_whenHungerIsHigh() {
+        val repository = InMemoryPetRepository()
+        val createPet = CreatePetUseCase(repository)
+        val tickStats = TickStatsUseCase(
+            petRepository = repository,
+            hungerDelta = 30,
+            energyDelta = 0,
+            hygieneDelta = 0,
+            healthRecovery = 4,
+        )
+
+        createPet(name = "Rolo", species = PetSpecies.DOG)
+        tickStats()
+
+        val pet = repository.getPet()
+        assertNotNull(pet)
+        assertEquals(90, pet.stats.health)
+    }
+
+    @Test
+    fun tick_recovery_capsHealthAt100() {
+        val repository = InMemoryPetRepository()
+        val createPet = CreatePetUseCase(repository)
+        val tickStats = TickStatsUseCase(
+            petRepository = repository,
+            hungerDelta = 0,
+            energyDelta = 0,
+            hygieneDelta = 0,
+            healthRecovery = 6,
+        )
+
+        createPet(name = "Iris", species = PetSpecies.DRAGON)
+        tickStats()
+        tickStats()
+
+        val pet = repository.getPet()
+        assertNotNull(pet)
+        assertEquals(100, pet.stats.health)
+    }
+
+    @Test
+    fun viewModel_tick_showsHealthRecoveryMessage_whenHealthIncreases() {
+        val repository = InMemoryPetRepository()
+        val viewModel = PetViewModel(
+            createPetUseCase = CreatePetUseCase(repository),
+            getPetStatusUseCase = GetPetStatusUseCase(repository),
+            tickStatsUseCase = TickStatsUseCase(
+                petRepository = repository,
+                hungerDelta = 0,
+                energyDelta = 0,
+                hygieneDelta = 0,
+                healthRecovery = 3,
+            ),
+            feedPetUseCase = FeedPetUseCase(repository),
+            playWithPetUseCase = PlayWithPetUseCase(repository),
+            cleanPetUseCase = CleanPetUseCase(repository),
+            sleepPetUseCase = SleepPetUseCase(repository),
+            getHungerStateUseCase = GetHungerStateUseCase(),
+            getHappinessStateUseCase = GetHappinessStateUseCase(),
+        )
+
+        viewModel.createPet(name = "Mika", species = PetSpecies.CAT)
+        viewModel.tick()
+
+        assertEquals("Recupera +3 salud", viewModel.uiState.healthRecoveryMessage)
     }
 }
