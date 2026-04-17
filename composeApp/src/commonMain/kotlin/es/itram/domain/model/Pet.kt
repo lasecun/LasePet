@@ -35,6 +35,16 @@ data class Stats(
         val next = (happiness + delta).coerceIn(0, 100)
         return copy(happiness = next)
     }
+
+    fun withEnergyDelta(delta: Int): Stats {
+        val next = (energy + delta).coerceIn(0, 100)
+        return copy(energy = next)
+    }
+
+    fun withHygieneDelta(delta: Int): Stats {
+        val next = (hygiene + delta).coerceIn(0, 100)
+        return copy(hygiene = next)
+    }
 }
 
 data class Pet(
