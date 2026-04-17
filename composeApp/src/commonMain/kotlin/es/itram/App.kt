@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.DinnerDining
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Hotel
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Schedule
@@ -26,8 +28,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -39,6 +44,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -56,6 +62,7 @@ import es.itram.presentation.rememberPlatformPetRepository
 
 @Composable
 @Preview
+@OptIn(ExperimentalMaterial3Api::class)
 fun App() {
     val petRepository = rememberPlatformPetRepository()
     val viewModel = remember(petRepository) { AppContainer.createPetViewModel(petRepository) }
@@ -63,8 +70,28 @@ fun App() {
     var petNameInput by rememberSaveable { mutableStateOf("") }
     var selectedSpeciesName by rememberSaveable { mutableStateOf(PetSpecies.DOG.name) }
     val selectedSpecies = PetSpecies.valueOf(selectedSpeciesName)
+    var showInfoSheet by rememberSaveable { mutableStateOf(false) }
 
     MaterialTheme {
+        if (showInfoSheet) {
+            ModalBottomSheet(onDismissRequest = { showInfoSheet = false }) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text("Sobre PocketPal", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        "PocketPal es un juego de mascota virtual. Cuida sus stats con acciones " +
+                            "como comer, jugar, limpiar y dormir. El tiempo avanza con Tick y tu " +
+                            "objetivo es mantener a tu mascota sana y feliz.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        }
+
         Column(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surface)
@@ -74,7 +101,10 @@ fun App() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            HeaderCard(petName = if (uiState.hasPet) uiState.petName else null)
+            HeaderCard(
+                petName = if (uiState.hasPet) uiState.petName else null,
+                onInfoClick = { showInfoSheet = true },
+            )
 
             if (!uiState.hasPet) {
                 CreatePetCard(
@@ -109,7 +139,7 @@ fun App() {
 }
 
 @Composable
-private fun HeaderCard(petName: String?) {
+private fun HeaderCard(petName: String?, onInfoClick: () -> Unit) {
     ElevatedCard(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.elevatedCardColors(
@@ -130,7 +160,15 @@ private fun HeaderCard(petName: String?) {
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
-            Icon(imageVector = Icons.Filled.Pets, contentDescription = null)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(imageVector = Icons.Filled.Pets, contentDescription = null)
+                IconButton(onClick = onInfoClick) {
+                    Icon(
+                        imageVector = Icons.Filled.Info,
+                        contentDescription = "Informacion del juego",
+                    )
+                }
+            }
         }
     }
 }
@@ -264,10 +302,15 @@ private fun FoodActionsCard(onFeed: (FoodType) -> Unit) {
                         Text(foodType.displayName, style = MaterialTheme.typography.titleSmall)
                         Text("Reduce hambre en ${foodType.hungerReduction}", style = MaterialTheme.typography.labelMedium)
                     }
-                    OutlinedButton(onClick = { onFeed(foodType) }) {
+                    OutlinedButton(
+                        onClick = { onFeed(foodType) },
+                        modifier = Modifier.size(48.dp),
+                        contentPadding = PaddingValues(0.dp),
+                    ) {
                         Icon(
                             imageVector = foodIcon(foodType),
                             contentDescription = "Usar ${foodType.displayName}",
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
