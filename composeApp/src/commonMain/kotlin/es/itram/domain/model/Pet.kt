@@ -54,5 +54,6 @@ data class Pet(
     val stats: Stats,
     val createdAtEpochMillis: Long,
     val criticalHungerStreak: Int = 0,
+    val lastTickEpochMillis: Long = 0,
 )
 

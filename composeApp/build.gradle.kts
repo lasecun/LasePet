@@ -43,6 +43,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.sqldelight.runtime)
+            implementation(libs.kotlinx.coroutines.core)
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.native.driver)
@@ -64,6 +65,10 @@ sqldelight {
 android {
     namespace = "es.itram"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "es.itram"

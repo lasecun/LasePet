@@ -9,7 +9,8 @@ CREATE TABLE pet_state (
     hygiene INTEGER NOT NULL,
     health INTEGER NOT NULL,
     created_at_epoch_millis INTEGER NOT NULL,
-    critical_hunger_streak INTEGER NOT NULL
+    critical_hunger_streak INTEGER NOT NULL,
+    last_tick_epoch_millis INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE pet_event (
@@ -35,10 +36,12 @@ INSERT OR REPLACE INTO pet_state(
     hygiene,
     health,
     created_at_epoch_millis,
-    critical_hunger_streak
+    critical_hunger_streak,
+    last_tick_epoch_millis
 )
 VALUES (
     0,
+    ?,
     ?,
     ?,
     ?,

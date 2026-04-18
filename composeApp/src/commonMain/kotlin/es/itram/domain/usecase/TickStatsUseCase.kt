@@ -18,7 +18,7 @@ class TickStatsUseCase(
     private val happinessPenalty: Int = 5,
     private val getHungerStateUseCase: GetHungerStateUseCase = GetHungerStateUseCase(),
 ) {
-    operator fun invoke(): Pet? {
+    operator fun invoke(nowEpochMillis: Long = 0): Pet? {
         val pet = petRepository.getPet() ?: return null
 
         val tickUpdatedStats = pet.stats
@@ -51,9 +51,9 @@ class TickStatsUseCase(
         val updated = pet.copy(
             stats = nextStats,
             criticalHungerStreak = nextCriticalStreak,
+            lastTickEpochMillis = if (nowEpochMillis > 0) nowEpochMillis else pet.lastTickEpochMillis,
         )
         petRepository.savePet(updated)
         return updated
     }
 }
-

@@ -1,0 +1,2 @@
+ALTER TABLE pet_state ADD COLUMN last_tick_epoch_millis INTEGER NOT NULL DEFAULT 0;
+
