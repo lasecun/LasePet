@@ -17,7 +17,7 @@ class SqlDelightPetRepository(
 
     override fun getPet(): Pet? {
         return queries.selectState(
-            mapper = { _, petId, name, species, hunger, happiness, energy, hygiene, health, createdAt, streak ->
+            mapper = { _, petId, name, species, hunger, happiness, energy, hygiene, health, createdAt, streak, lastTick ->
                 Pet(
                     id = petId,
                     name = name,
@@ -31,6 +31,7 @@ class SqlDelightPetRepository(
                     ),
                     createdAtEpochMillis = createdAt,
                     criticalHungerStreak = streak.toInt(),
+                    lastTickEpochMillis = lastTick,
                 )
             },
         ).executeAsOneOrNull()
@@ -48,6 +49,7 @@ class SqlDelightPetRepository(
             health = pet.stats.health.toLong(),
             created_at_epoch_millis = pet.createdAtEpochMillis,
             critical_hunger_streak = pet.criticalHungerStreak.toLong(),
+            last_tick_epoch_millis = pet.lastTickEpochMillis,
         )
     }
 

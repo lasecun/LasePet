@@ -15,9 +15,13 @@ import es.itram.domain.usecase.PlayWithPetUseCase
 import es.itram.domain.usecase.RecordPetEventUseCase
 import es.itram.domain.usecase.SleepPetUseCase
 import es.itram.domain.usecase.TickStatsUseCase
+import es.itram.notification.NotificationService
 
 object AppContainer {
-    fun createPetViewModel(petRepository: PetRepository): PetViewModel {
+    fun createPetViewModel(
+        petRepository: PetRepository,
+        notificationService: NotificationService,
+    ): PetViewModel {
         return PetViewModel(
             createPetUseCase = CreatePetUseCase(petRepository),
             getPetStatusUseCase = GetPetStatusUseCase(petRepository),
@@ -33,6 +37,7 @@ object AppContainer {
             getEnergyStateUseCase = GetEnergyStateUseCase(),
             getHygieneStateUseCase = GetHygieneStateUseCase(),
             getHealthStateUseCase = GetHealthStateUseCase(),
+            notificationService = notificationService,
         )
     }
 }

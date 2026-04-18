@@ -37,11 +37,15 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
+import es.itram.util.isDebugBuild
+import es.itram.presentation.rememberPlatformNotificationService
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.PaddingValues
@@ -66,12 +70,26 @@ import es.itram.presentation.rememberPlatformPetRepository
 @OptIn(ExperimentalMaterial3Api::class)
 fun App() {
     val petRepository = rememberPlatformPetRepository()
-    val viewModel = remember(petRepository) { AppContainer.createPetViewModel(petRepository) }
+    val notificationService = rememberPlatformNotificationService()
+    val viewModel = remember(petRepository) { AppContainer.createPetViewModel(petRepository, notificationService) }
     val uiState = viewModel.uiState
     var petNameInput by rememberSaveable { mutableStateOf("") }
     var selectedSpeciesName by rememberSaveable { mutableStateOf(PetSpecies.DOG.name) }
     val selectedSpecies = PetSpecies.valueOf(selectedSpeciesName)
     var showInfoSheet by rememberSaveable { mutableStateOf(false) }
+
+    // Catch-up: aplica los ticks que se perdieron mientras la app estaba cerrada
+    LaunchedEffect(viewModel) {
+        viewModel.catchUpTicks()
+    }
+
+    // Auto-tick en tiempo real
+    LaunchedEffect(viewModel) {
+        while (true) {
+            delay(viewModel.tickIntervalMs)
+            viewModel.tick()
+        }
+    }
 
     MaterialTheme {
         if (showInfoSheet) {
@@ -124,6 +142,7 @@ fun App() {
                     onClean = viewModel::clean,
                     onSleep = viewModel::sleep,
                     onTick = viewModel::tick,
+                    showDebugTick = isDebugBuild,
                 )
                 DiaryCard(events = uiState.recentEvents)
             }
@@ -369,6 +388,7 @@ private fun CareActionsCard(
     onClean: () -> Unit,
     onSleep: () -> Unit,
     onTick: () -> Unit,
+    showDebugTick: Boolean = false,
 ) {
     Card(shape = RoundedCornerShape(16.dp)) {
         Column(
@@ -384,7 +404,9 @@ private fun CareActionsCard(
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 IconActionButton(Icons.Filled.Hotel, "Dormir", onSleep, Modifier.weight(1f))
-                IconActionButton(Icons.Filled.Schedule, "Tick", onTick, Modifier.weight(1f))
+                if (showDebugTick) {
+                    IconActionButton(Icons.Filled.Schedule, "Tick 🐛", onTick, Modifier.weight(1f))
+                }
             }
         }
     }
