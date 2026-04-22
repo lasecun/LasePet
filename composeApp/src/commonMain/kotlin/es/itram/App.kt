@@ -4,11 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -26,7 +29,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import es.itram.domain.model.FoodType
 import es.itram.domain.model.PetSpecies
+import es.itram.domain.model.RewardEvent
 import es.itram.presentation.AppContainer
+import es.itram.presentation.PetUiState
 
 @Composable
 @Preview
@@ -100,6 +105,9 @@ fun App() {
                     text = "Mascota: ${uiState.petName} (${uiState.speciesName})",
                     style = MaterialTheme.typography.titleMedium,
                 )
+
+                GamificationPanel(uiState)
+
                 Text(
                     text = "Hambre: ${uiState.hunger}/100",
                     style = MaterialTheme.typography.titleLarge,
@@ -141,6 +149,8 @@ fun App() {
                         Text("Avanzar tiempo (+5 hambre)")
                     }
                 }
+
+                RecentRewardsSection(uiState.recentRewards)
             }
 
             if (uiState.errorMessage != null) {
@@ -152,3 +162,111 @@ fun App() {
         }
     }
 }
+
+@Composable
+private fun GamificationPanel(uiState: PetUiState) {
+    val xpFraction = if (uiState.xpForNextLevel > 0) {
+        uiState.xpProgress.toFloat() / uiState.xpForNextLevel.toFloat()
+    } else {
+        1f
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = MaterialTheme.shapes.medium,
+            )
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = "Nivel ${uiState.level}",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = "🪙 ${uiState.coins}",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                text = "🔥 ${uiState.dailyStreak} ${if (uiState.dailyStreak == 1) "día" else "días"}",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        LinearProgressIndicator(
+            progress = { xpFraction },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text(
+            text = "${uiState.xpProgress} / ${uiState.xpForNextLevel} XP",
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.align(Alignment.End),
+        )
+        if (uiState.unlockedAchievements.isNotEmpty()) {
+            Text(
+                text = "Logros: ${uiState.unlockedAchievements.size}/${es.itram.domain.model.Achievement.entries.size}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.secondary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecentRewardsSection(rewards: List<RewardEvent>) {
+    if (rewards.isEmpty()) return
+
+    val levelUps = rewards.filterIsInstance<RewardEvent.LevelUp>()
+    val achievementsUnlocked = rewards.filterIsInstance<RewardEvent.AchievementUnlocked>()
+    val totalXpGained = rewards.filterIsInstance<RewardEvent.XpGained>().sumOf { it.amount }
+    val totalCoinsGained = rewards.filterIsInstance<RewardEvent.CoinsGained>().sumOf { it.amount }
+    val streakUpdated = rewards.filterIsInstance<RewardEvent.StreakUpdated>().firstOrNull()
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(Modifier.height(2.dp))
+        levelUps.forEach { levelUp ->
+            Text(
+                text = "🎉 ¡Subiste al nivel ${levelUp.newLevel}!",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        achievementsUnlocked.forEach { event ->
+            Text(
+                text = "🏆 ¡Logro desbloqueado: ${event.achievement.displayName}!",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.tertiary,
+            )
+        }
+        if (streakUpdated != null && streakUpdated.isNewDay) {
+            Text(
+                text = "📅 Racha actualizada: ${streakUpdated.days} ${if (streakUpdated.days == 1) "día" else "días"}",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.secondary,
+            )
+        }
+        val rewardParts = buildList {
+            if (totalXpGained > 0) add("+$totalXpGained XP")
+            if (totalCoinsGained > 0) add("+$totalCoinsGained 🪙")
+        }
+        if (rewardParts.isNotEmpty()) {
+            Text(
+                text = rewardParts.joinToString("  "),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.secondary,
+            )
+        }
+    }
+}
+

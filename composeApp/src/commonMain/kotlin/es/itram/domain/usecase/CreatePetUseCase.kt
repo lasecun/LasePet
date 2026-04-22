@@ -1,5 +1,6 @@
 package es.itram.domain.usecase
 
+import es.itram.domain.model.GamificationState
 import es.itram.domain.model.Pet
 import es.itram.domain.model.PetSpecies
 import es.itram.domain.model.Stats
@@ -11,6 +12,7 @@ class CreatePetUseCase(
     private val currentTimeMillis: () -> Long = { 0L },
 ) {
     operator fun invoke(name: String, species: PetSpecies): Pet {
+        val now = currentTimeMillis()
         val pet = Pet(
             id = Random.nextLong().toString(),
             name = name,
@@ -22,9 +24,11 @@ class CreatePetUseCase(
                 hygiene = 70,
                 health = 90,
             ),
-            createdAtEpochMillis = currentTimeMillis(),
+            createdAtEpochMillis = now,
+            gamification = GamificationState.initial(now),
         )
         petRepository.savePet(pet)
         return pet
     }
 }
+

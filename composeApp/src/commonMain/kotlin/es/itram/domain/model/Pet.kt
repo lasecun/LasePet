@@ -33,5 +33,6 @@ data class Pet(
     val species: PetSpecies,
     val stats: Stats,
     val createdAtEpochMillis: Long,
+    val gamification: GamificationState,
 )
 
